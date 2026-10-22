@@ -51,7 +51,7 @@ static struct work_struct input_boost_work;
 
 static bool input_boost_enabled;
 
-static unsigned int input_boost_ms = 40;
+static unsigned int input_boost_ms = 80;
 show_one(input_boost_ms);
 store_one(input_boost_ms);
 cpu_boost_attr_rw(input_boost_ms);
@@ -347,6 +347,11 @@ int cpu_boost_init(void)
 	for_each_possible_cpu(cpu) {
 		s = &per_cpu(sync_info, cpu);
 		s->cpu = cpu;
+		/* 固化的 input boost（省电平衡）：A55 cpu0 → 1.3GHz，A78 cpu4 → 1.55GHz，X1 不开 */
+		if (cpu == 0)
+			s->input_boost_freq = 1305600;
+		else if (cpu == 4)
+			s->input_boost_freq = 1555200;
 		req = &per_cpu(qos_req, cpu);
 		policy = cpufreq_cpu_get(cpu);
 		if (!policy) {
@@ -365,6 +370,9 @@ int cpu_boost_init(void)
 
 	}
 
+	/* input boost 已固化启用（有 boost 频率配置） */
+	input_boost_enabled = true;
+
 	cpu_boost_kobj = kobject_create_and_add("cpu_boost",
 						&cpu_subsys.dev_root->kobj);
 	if (!cpu_boost_kobj)
@@ -377,6 +385,10 @@ int cpu_boost_init(void)
 	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_freq_attr.attr);
 	if (ret)
 		pr_err("Failed to create input_boost_freq node: %d\n", ret);
+
+	/* 锁定只读，防止厂商开机覆盖固化配置 */
+	sysfs_chmod_file(cpu_boost_kobj, &input_boost_ms_attr.attr, 0444);
+	sysfs_chmod_file(cpu_boost_kobj, &input_boost_freq_attr.attr, 0444);
 
 	ret = sysfs_create_file(cpu_boost_kobj,
 				&sched_boost_on_input_attr.attr);

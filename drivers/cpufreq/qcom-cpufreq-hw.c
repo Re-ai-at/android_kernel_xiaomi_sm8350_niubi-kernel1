@@ -444,6 +444,7 @@ static int qcom_cpufreq_hw_read_lut(struct platform_device *pdev,
 	struct device *dev = &pdev->dev, *cpu_dev;
 	u32 data, src, lval, i, core_count, prev_cc, prev_freq, freq, volt;
 	unsigned long cpu;
+	int j = 0;
 
 	c->table = devm_kcalloc(dev, lut_max_entries + 1,
 				sizeof(*c->table), GFP_KERNEL);
@@ -454,6 +455,7 @@ static int qcom_cpufreq_hw_read_lut(struct platform_device *pdev,
 	cpu_dev = get_cpu_device(cpu);
 
 	prev_cc = 0;
+	prev_freq = 0;
 
 	for (i = 0; i < lut_max_entries; i++) {
 		data = readl_relaxed(c->base + offsets[REG_FREQ_LUT] +
@@ -471,12 +473,17 @@ static int qcom_cpufreq_hw_read_lut(struct platform_device *pdev,
 		else
 			freq = cpu_hw_rate / 1000;
 
-		c->table[i].frequency = freq;
+		/* 固有限频（省电调优）：X1 (cpu7) ≤ 2.496GHz，A78 (cpu4-6) ≤ 2.227GHz */
+		if ((cpu == 7 && freq > 2496000) ||
+		    (cpu >= 4 && cpu <= 6 && freq > 2227200))
+			continue;
+
+		c->table[j].frequency = freq;
 		dev_dbg(dev, "index=%d freq=%d, core_count %d\n",
-				i, c->table[i].frequency, core_count);
+				j, c->table[j].frequency, core_count);
 
 		if (core_count != max_cores)
-			c->table[i].flags  = CPUFREQ_BOOST_FREQ;
+			c->table[j].flags  = CPUFREQ_BOOST_FREQ;
 
 		/*
 		 * Two of the same frequencies with the same core counts means
@@ -490,9 +497,10 @@ static int qcom_cpufreq_hw_read_lut(struct platform_device *pdev,
 
 		if (cpu_dev)
 			dev_pm_opp_add(cpu_dev, freq * 1000, volt);
+		j++;
 	}
 
-	c->table[i].frequency = CPUFREQ_TABLE_END;
+	c->table[j].frequency = CPUFREQ_TABLE_END;
 
 	if (cpu_dev)
 		dev_pm_opp_set_sharing_cpus(cpu_dev, &c->related_cpus);
