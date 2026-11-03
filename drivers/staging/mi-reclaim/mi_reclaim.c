@@ -569,7 +569,7 @@ static int __init mi_reclaim_init(void)
 	if (mi_reclaim_thread_start() < 0)
 		return RET_FAIL;
 
-	pg_mi_reclaim->switch_on = true;
+	pg_mi_reclaim->switch_on = false;
 	pr_info("mi_reclaim init ok\n");
 	return RET_OK;
 

@@ -177,7 +177,7 @@ struct scan_control {
 /*
  * Number of active kswapd threads
  */
-#define DEF_KSWAPD_THREADS_PER_NODE 1
+#define DEF_KSWAPD_THREADS_PER_NODE 3
 int kswapd_threads = DEF_KSWAPD_THREADS_PER_NODE;
 int kswapd_threads_current = DEF_KSWAPD_THREADS_PER_NODE;
 
@@ -212,7 +212,7 @@ int kswapd_threads_current = DEF_KSWAPD_THREADS_PER_NODE;
 /*
  * From 0 .. 200.  Higher means more swappy.
  */
-int vm_swappiness = 60;
+int vm_swappiness = 100;
 /*
  * The total number of pages which are beyond the high watermark within all
  * zones.
