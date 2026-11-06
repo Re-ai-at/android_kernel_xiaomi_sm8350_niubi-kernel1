@@ -489,7 +489,9 @@ EXPORT_SYMBOL(test_taint);
 
 unsigned long get_taint(void)
 {
-	return tainted_mask;
+	/* KSU hide: report zero taint to userspace (/proc/sys/kernel/tainted).
+	 * In-kernel mask kept for internal bookkeeping; stock kernel reports 0. */
+	return 0;
 }
 
 /**

@@ -48,8 +48,11 @@ const char linux_banner[] =
 	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
 
 const char linux_proc_banner[] =
-	"%s version %s"
-	" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
-	" (" LINUX_COMPILER ") %s\n";
+	"Linux version 5.4.274-qgki-g4dfe63e0666f "
+	"(builder@pangu-build-component-vendor-287288-vl8d5-glnj6-cg6q4) "
+	"(Android (8481493, based on r416183c2) clang version 12.0.9 "
+	"(https://android.googlesource.com/toolchain/llvm-project "
+	"c935d99d7cf2016289302412d708641d52d2f7ee)) "
+	"#1 SMP PREEMPT Fri Nov 14 08:46:47 UTC 2025\n";
 
 BUILD_SALT;
