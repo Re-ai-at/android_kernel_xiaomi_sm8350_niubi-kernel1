@@ -1572,7 +1572,12 @@ static int sugov_init(struct cpufreq_policy *policy)
 		goto stop_kthread;
 	}
 
-	tunables->up_rate_limit_us = cpufreq_policy_transition_delay_us(policy);
+	/*
+	 * 省电调优：升频限速放宽到 2× transition delay（默认约 20ms），
+	 * 减少频率抖动与瞬时升频；降频保持快速，尽快回落到低频。
+	 * 运行期仍可经 sysfs 调整（/sys/devices/system/cpu/cpufreq/schedutil/）。
+	 */
+	tunables->up_rate_limit_us = cpufreq_policy_transition_delay_us(policy) * 2;
 	tunables->down_rate_limit_us = cpufreq_policy_transition_delay_us(policy);
 	tunables->hispeed_load = DEFAULT_HISPEED_LOAD;
 	tunables->hispeed_freq = 0;
